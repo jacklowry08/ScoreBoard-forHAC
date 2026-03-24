@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   summaryLeft: { flex: 1 },
-  gpaNumber: { fontSize: 52, fontWeight: '800', lineHeight: 58 },
+  gpaNumber: { fontSize: 52, fontWeight: '800', fontFamily: 'Inter_700Bold', lineHeight: 58 },
   gpaLabel: { fontSize: 13, marginTop: 2 },
   gpaSubLabel: { fontSize: 12, marginTop: 4 },
   toggleGroup: { gap: 8, alignItems: 'flex-end' },

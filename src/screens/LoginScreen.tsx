@@ -313,6 +313,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },

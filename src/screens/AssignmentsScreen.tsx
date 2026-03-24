@@ -167,7 +167,7 @@ export default function AssignmentsScreen({ route, navigation }: any) {
       <View
         style={[
           styles.assignmentRow,
-          { backgroundColor: theme.cardBackground, borderColor: theme.border },
+          { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth },
         ]}>
         <View style={styles.leftSection}>
           {extraCredit ? (
@@ -245,7 +245,7 @@ export default function AssignmentsScreen({ route, navigation }: any) {
           : saAvg ?? faAvg;
         const displayOverall = classAverage != null ? classAverage : (derivedOverall != null ? derivedOverall.toFixed(1) : null);
         return (
-          <View style={[styles.statsBar, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+          <View style={[styles.statsBar, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: theme.text }]}>
                 {displayOverall != null ? `${displayOverall}%` : '—'}
@@ -332,18 +332,26 @@ const styles = StyleSheet.create({
   backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   backButtonText: { fontSize: 16, fontWeight: '600' },
   headerBottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', flex: 1, marginRight: 8 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', fontFamily: 'Inter_700Bold', flex: 1, marginRight: 8 },
   calcBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1.5 },
   calcBtnText: { fontSize: 12, fontWeight: '600' },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingVertical: 16,
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 4,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 4,
   },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 20, fontWeight: '700', marginBottom: 3 },
+  statValue: { fontSize: 22, fontWeight: '700', fontFamily: 'Inter_700Bold', marginBottom: 3 },
   statLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statDot: { width: 8, height: 8, borderRadius: 4 },
   statLabel: { fontSize: 11 },
@@ -357,11 +365,10 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
   },
   leftSection: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
   categoryBadge: { width: 12, height: 12, borderRadius: 6 },

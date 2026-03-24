@@ -183,7 +183,7 @@ export default function HomeScreen({ navigation }: any) {
 
     return (
       <ScalePressable
-        style={[styles.item, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+        style={[styles.item, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}
         onPress={() => navigation.navigate('Assignments', {
           classId: item.classId,
           className: item.className,
@@ -264,7 +264,7 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header:    { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
-  greeting:  { fontSize: 26, fontWeight: 'bold', marginBottom: 3 },
+  greeting:  { fontSize: 26, fontWeight: 'bold', fontFamily: 'Inter_700Bold', marginBottom: 3 },
   date:      { fontSize: 13, fontWeight: '500' },
 
   center:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
@@ -285,14 +285,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: 14,
-    borderWidth: 1,
     padding: 12,
     marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
   },
   itemLeft:  { flex: 1, marginRight: 12 },
   itemClass: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 },

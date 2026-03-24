@@ -67,7 +67,7 @@ export default function SecurityScreen({ navigation }: any) {
 
       <ScrollView style={styles.content}>
         {/* Biometric Authentication */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Biometric Authentication</Text>
           
           {!biometricAvailable ? (
@@ -112,7 +112,7 @@ export default function SecurityScreen({ navigation }: any) {
         </View>
 
         {/* Security Information */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Data Security</Text>
           
           <View style={styles.securityItem}>
@@ -153,7 +153,7 @@ export default function SecurityScreen({ navigation }: any) {
         </View>
 
         {/* Best Practices */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Best Practices</Text>
           <Text style={[styles.practiceText, { color: theme.textSecondary }]}>
             • Enable biometric lock for extra security
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   backButtonText: { fontSize: 16, fontWeight: '600' },
   title: { fontSize: 28, fontWeight: 'bold' },
   content: { flex: 1, padding: 20 },
-  section: { borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
+  section: { borderRadius: 12, padding: 16, marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
   settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   settingInfo: { flex: 1, marginRight: 12 },

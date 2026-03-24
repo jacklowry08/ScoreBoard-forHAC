@@ -1,5 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -30,6 +37,14 @@ import { useAuth } from './src/context/AuthContext';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const tabPillStyle = {
+  width: 52,
+  height: 36,
+  borderRadius: 18,
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+};
+
 function MainTabs() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -48,69 +63,39 @@ function MainTabs() {
             height: 58 + insets.bottom,
             backgroundColor: theme.cardBackground,
             borderTopColor: theme.border,
+            borderTopWidth: theme.cardBorderWidth,
           },
           tabBarShowLabel: false,
         }}>
-        <Tab.Screen
-          name="HomeTab"
-          component={HomeScreen}
-          options={{
-            tabBarLabel: 'Home',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={27} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="GradesTab"
-          component={GradesScreen}
-          options={{
-            tabBarLabel: 'Grades',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={27} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="AttendanceTab"
-          component={AttendanceScreen}
-          options={{
-            tabBarLabel: 'Attendance',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={27} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PlannerTab"
-          component={PlannerScreen}
-          options={{
-            tabBarLabel: 'Planner',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'journal' : 'journal-outline'} size={27} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="TranscriptTab"
-          component={TranscriptScreen}
-          options={{
-            tabBarLabel: 'Transcript',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'school' : 'school-outline'} size={27} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="SettingsTab"
-          component={SettingsScreen}
-          options={{
-            tabBarLabel: 'Settings',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'settings' : 'settings-outline'} size={27} color={color} />
-            ),
-          }}
-        />
+        {[
+          { name: 'HomeTab',       component: HomeScreen,       icon: 'home',        label: 'Home' },
+          { name: 'GradesTab',     component: GradesScreen,     icon: 'stats-chart', label: 'Grades' },
+          { name: 'AttendanceTab', component: AttendanceScreen, icon: 'calendar',    label: 'Attendance' },
+          { name: 'PlannerTab',    component: PlannerScreen,    icon: 'journal',     label: 'Planner' },
+          { name: 'TranscriptTab', component: TranscriptScreen, icon: 'school',      label: 'Transcript' },
+          { name: 'SettingsTab',   component: SettingsScreen,   icon: 'settings',    label: 'Settings' },
+        ].map(({ name, component, icon, label }) => (
+          <Tab.Screen
+            key={name}
+            name={name}
+            component={component}
+            options={{
+              tabBarLabel: label,
+              tabBarIcon: ({ color, focused }) => (
+                <View style={[
+                  tabPillStyle,
+                  focused && { backgroundColor: theme.primary + '20' },
+                ]}>
+                  <Ionicons
+                    name={focused ? icon as any : `${icon}-outline` as any}
+                    size={27}
+                    color={color}
+                  />
+                </View>
+              ),
+            }}
+          />
+        ))}
       </Tab.Navigator>
     </AuthGate>
   );
@@ -148,6 +133,15 @@ function Navigation() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  if (!fontsLoaded) return <View style={{ flex: 1 }} />;
+
   return (
     <ThemeProvider>
       <AuthProvider>

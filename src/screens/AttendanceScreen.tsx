@@ -123,7 +123,7 @@ export default function AttendanceScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* ── Month navigation bar ── */}
-        <View style={[styles.monthNav, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.monthNav, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <TouchableOpacity style={styles.navBtn} onPress={() => navigate('prev')} disabled={navigating}>
             <Text style={[styles.navArrow, { color: navigating ? theme.textSecondary : theme.primary }]}>‹</Text>
           </TouchableOpacity>
@@ -153,7 +153,7 @@ export default function AttendanceScreen() {
         ) : (
           <>
             {/* ── Calendar ── */}
-            <View style={[styles.calCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+            <View style={[styles.calCard, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
               {/* Day-of-week header */}
               <View style={[styles.dowRow, { borderBottomColor: theme.border }]}>
                 {DOW.map((d, i) => (
@@ -207,7 +207,7 @@ export default function AttendanceScreen() {
 
             {/* ── Legend (from HAC) ── */}
             {data && data.legend.length > 0 && (
-              <View style={[styles.legend, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+              <View style={[styles.legend, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
                 <Text style={[styles.legendTitle, { color: theme.textSecondary }]}>Legend</Text>
                 <View style={styles.legendGrid}>
                   {data.legend.map(({ color, label }) => (
@@ -245,7 +245,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderRadius: 16,
-    borderWidth: 1,
     marginBottom: 10,
   },
   navBtn:     { paddingHorizontal: 16, paddingVertical: 10 },
@@ -260,7 +259,6 @@ const styles = StyleSheet.create({
 
   calCard: {
     borderRadius: 16,
-    borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 10,
   },
@@ -290,7 +288,6 @@ const styles = StyleSheet.create({
 
   legend: {
     borderRadius: 16,
-    borderWidth: 1,
     padding: 14,
   },
   legendTitle: {

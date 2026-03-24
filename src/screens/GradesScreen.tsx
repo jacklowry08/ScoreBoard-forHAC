@@ -275,7 +275,7 @@ const selectedPeriodRef = useRef(0);
 
     return (
       <ScalePressable
-        style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+        style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}
         onPress={() =>
           navigation.navigate('Assignments', {
             classId: item.id,
@@ -406,27 +406,27 @@ const selectedPeriodRef = useRef(0);
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { padding: 20, paddingTop: 60 },
-  title: { fontSize: 28, fontWeight: 'bold' },
-  periodBarWrapper: { height: 52, borderBottomWidth: 1, justifyContent: 'center', paddingHorizontal: 15 },
+  title: { fontSize: 28, fontWeight: 'bold', fontFamily: 'Inter_700Bold' },
+  periodBarWrapper: { height: 60, borderBottomWidth: 1, justifyContent: 'center', paddingHorizontal: 16 },
   segmentedControl: {
     flexDirection: 'row',
-    borderRadius: 9,
-    padding: 3,
+    borderRadius: 12,
+    padding: 4,
   },
   segment: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 5,
-    borderRadius: 7,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   segmentSelected: {
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  segmentText: { fontSize: 13, fontWeight: '600' },
+  segmentText: { fontSize: 13, fontWeight: '700', fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
   emptyPeriod: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyPeriodText: { fontSize: 16 },
   list: { padding: 10, paddingBottom: 16 },
@@ -435,11 +435,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 7,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -449,6 +448,7 @@ const styles = StyleSheet.create({
   className: {
     fontSize: 15,
     fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
     flex: 1,
     marginRight: 10,
   },
@@ -463,6 +463,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: 'bold',
+    fontFamily: 'Inter_700Bold',
   },
   avgRow: { marginTop: 5 },
   avgContainer: { gap: 4 },

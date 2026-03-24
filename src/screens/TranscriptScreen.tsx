@@ -127,7 +127,7 @@ export default function TranscriptScreen({ navigation }: any) {
   const renderGpaCard = () => {
     if (!data?.gpaTable?.length) return null;
     return (
-      <View style={[styles.gpaCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+      <View style={[styles.gpaCard, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
         <Text style={[styles.gpaCardTitle, { color: theme.text }]}>GPA Summary</Text>
         {data.gpaTable.map((entry, i) => (
           <View key={i} style={styles.gpaRow}>
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
   },
-  title: { fontSize: 28, fontWeight: 'bold' },
+  title: { fontSize: 28, fontWeight: 'bold', fontFamily: 'Inter_700Bold' },
   calcBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   retryButton: { paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
   retryText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   listContent: { paddingBottom: 32 },
-  gpaCard: { margin: 15, borderRadius: 12, padding: 16, borderWidth: 1 },
+  gpaCard: { margin: 15, borderRadius: 12, padding: 16 },
   gpaCardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
   gpaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   gpaType: { fontSize: 14 },

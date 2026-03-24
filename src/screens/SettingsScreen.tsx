@@ -53,7 +53,7 @@ export default function SettingsScreen({ navigation }: any) {
       
       <ScrollView style={styles.content}>
         {/* Settings Options */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <ScalePressable
             style={styles.settingRow}
             onPress={() => navigation.navigate('GradeSharing')}>
@@ -118,7 +118,7 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
 
         {/* Legal */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <ScalePressable
             style={styles.settingRow}
             onPress={() => navigation.navigate('PrivacyPolicy')}>
@@ -141,7 +141,7 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
 
         {/* About Section */}
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>About</Text>
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>ScoreBoard for HAC™ v1.01</Text>
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
@@ -179,18 +179,17 @@ export default function SettingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { padding: 20, paddingTop: 60 },
-  title: { fontSize: 28, fontWeight: 'bold' },
+  title: { fontSize: 28, fontWeight: 'bold', fontFamily: 'Inter_700Bold' },
   content: { flex: 1, padding: 20 },
   section: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
-    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.07,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 4,
   },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
   settingRow: {

@@ -13,12 +13,13 @@ interface Theme {
   textSecondary: string;
   primary: string;
   border: string;
+  cardBorderWidth: number;
   headerBackground: string;
   headerText: string;
 }
 
 const colorPalettes: Record<PresetColorScheme, string> = {
-  classic: '#4A90E2',
+  classic: '#6366F1',
   magenta: '#E91E63',
   yellow: '#FFC107',
   green: '#4CAF50',
@@ -38,6 +39,7 @@ const createTheme = (isDark: boolean, oledMode: boolean, color: string): Theme =
       textSecondary:   '#B0B0B0',
       primary:         color,
       border:          oledMode ? '#222222' : '#333333',
+      cardBorderWidth: 0.5,
       headerBackground: color,
       headerText:      '#fff',
     };
@@ -49,6 +51,7 @@ const createTheme = (isDark: boolean, oledMode: boolean, color: string): Theme =
       textSecondary:   '#666',
       primary:         color,
       border:          '#e0e0e0',
+      cardBorderWidth: 0,
       headerBackground: color,
       headerText:      '#fff',
     };

@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import HSVColorPicker from './HSVColorPicker';
 
 const colorOptions = [
-  { id: 'classic' as const, name: 'Classic', color: '#4A90E2' },
+  { id: 'classic' as const, name: 'Classic', color: '#6366F1' },
   { id: 'magenta' as const, name: 'Magenta', color: '#E91E63' },
   { id: 'purple'  as const, name: 'Purple',  color: '#9C27B0' },
   { id: 'green'   as const, name: 'Green',   color: '#4CAF50' },

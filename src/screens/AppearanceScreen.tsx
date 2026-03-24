@@ -22,7 +22,7 @@ export default function AppearanceScreen({ navigation }: any) {
       </GradientHeader>
 
       <ScrollView style={styles.content}>
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Theme Mode</Text>
           <Text style={[styles.sectionDescription, { color: theme.textSecondary }]}>
             Choose between light and dark mode, or sync with your system settings
@@ -47,7 +47,7 @@ export default function AppearanceScreen({ navigation }: any) {
           )}
         </View>
 
-        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Accent Color</Text>
           <Text style={[styles.sectionDescription, { color: theme.textSecondary }]}>
             Personalize your experience with your favorite color
@@ -55,7 +55,7 @@ export default function AppearanceScreen({ navigation }: any) {
           <ColorPicker />
         </View>
 
-        <View style={[styles.infoBox, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+        <View style={[styles.infoBox, { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth }]}>
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
             Your theme preferences are saved and will be remembered next time you open the app
           </Text>
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
-    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 18,
@@ -131,7 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 40,
-    borderWidth: 1,
   },
   infoText: {
     fontSize: 13,
