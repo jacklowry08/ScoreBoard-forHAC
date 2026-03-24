@@ -240,11 +240,15 @@ export default function AssignmentsScreen({ route, navigation }: any) {
           ? computeCategoryAvg(assignments, 'formative') : null;
         const saAvg = assignments.length > 0
           ? computeCategoryAvg(assignments, 'summative') : null;
+        const derivedOverall = faAvg != null && saAvg != null
+          ? 0.3 * faAvg + 0.7 * saAvg
+          : saAvg ?? faAvg;
+        const displayOverall = classAverage != null ? classAverage : (derivedOverall != null ? derivedOverall.toFixed(1) : null);
         return (
           <View style={[styles.statsBar, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: theme.text }]}>
-                {classAverage != null ? `${classAverage}%` : '—'}
+                {displayOverall != null ? `${displayOverall}%` : '—'}
               </Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Overall</Text>
             </View>

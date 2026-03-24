@@ -3,7 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
+  Animated,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { hacFetchAllPeriods, hacFetchTranscript, fetchStudentName, configureDistrict } from '../services/HACDirectClient';
 import { GradeCacheService } from '../services/GradeCacheService';
+import { GradeSharingService } from '../services/GradeSharingService';
 import { DISTRICTS, DEFAULT_DISTRICT, DISTRICT_KEY } from '../config/districts';
 
 const PREFETCHED_PERIOD_KEY = 'prefetched_current_period';
@@ -205,9 +207,17 @@ export default function AuthenticatingScreen({ navigation, route }: any) {
             }
           }
           console.log(`💾 BG: cached period ${periodIndex}`);
-          // Do NOT update PREFETCHED_PERIOD_KEY here — all periods fire in parallel
-          // and the last one to complete would overwrite the correct current period.
-          // The key was already set correctly during the fresh login.
+          GradeSharingService.submitGrades(
+            data.grades.map(g => ({ courseCode: g.courseCode, className: g.className, percentage: g.percentage })),
+            periodIndex,
+          );
+        }
+      }).then(({ currentPeriodIndex }) => {
+        // Update the period key using HAC's actual selected period from the
+        // completed fetch — safe to do here because it's a single authoritative
+        // value, not a per-callback race.
+        if (currentPeriodIndex > 0) {
+          AsyncStorage.setItem(PREFETCHED_PERIOD_KEY, String(currentPeriodIndex));
         }
       }).catch(e => console.warn('BG fetch error:', e));
 
@@ -243,6 +253,10 @@ export default function AuthenticatingScreen({ navigation, route }: any) {
           }
         }
         console.log(`💾 Auth: cached period ${periodIndex}`);
+        GradeSharingService.submitGrades(
+          data.grades.map(g => ({ courseCode: g.courseCode, className: g.className, percentage: g.percentage })),
+          periodIndex,
+        );
         if (periodIndex > bestPeriod) bestPeriod = periodIndex;
 
         if (firstPeriodHadData && !navigatedToMain) {
@@ -277,6 +291,14 @@ export default function AuthenticatingScreen({ navigation, route }: any) {
   const handleRetry = () => {
     navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }));
   };
+
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinAnim, { toValue: 1, duration: 800, useNativeDriver: true })
+    ).start();
+  }, []);
+  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   const innerStyle = {
     flex: 1,
@@ -328,29 +350,42 @@ export default function AuthenticatingScreen({ navigation, route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={innerStyle}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+        <Animated.View style={[styles.spinner, { borderTopColor: theme.primary, transform: [{ rotate: spin }] }]} />
         <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Signing in...</Text>
       </View>
-      {credentials && (
-        <WebView
-          ref={webViewRef}
-          source={{ uri: freshLogin
-            ? `${baseUrl}/HomeAccess/Account/LogOff`
-            : `${baseUrl}/HomeAccess/Account/LogOn` }}
-          style={styles.hiddenWebView}
-          onLoadEnd={handleLoadEnd}
-          onMessage={handleMessage}
-          sharedCookiesEnabled={true}
-          javaScriptEnabled={true}
-          userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-        />
-      )}
+      <WebView
+        ref={webViewRef}
+        source={{ uri: freshLogin
+          ? `${baseUrl}/HomeAccess/Account/LogOff`
+          : `${baseUrl}/HomeAccess/Account/LogOn` }}
+        style={styles.hiddenWebView}
+        onLoadEnd={handleLoadEnd}
+        onMessage={handleMessage}
+        sharedCookiesEnabled={true}
+        javaScriptEnabled={true}
+        userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingText: { marginTop: 15, fontSize: 16 },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 18,
+    marginBottom: 28,
+  },
+  spinner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: 'transparent',
+    marginBottom: 20,
+  },
+  loadingText: { fontSize: 16 },
   hiddenWebView: {
     position: 'absolute',
     top: -2000,

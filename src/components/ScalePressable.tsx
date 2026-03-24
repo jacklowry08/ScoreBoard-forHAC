@@ -13,6 +13,7 @@ export default function ScalePressable({ onPress, style, children }: Props) {
   return (
     <Pressable
       onPress={onPress}
+      unstable_pressDelay={50}
       onPressIn={() =>
         Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50, bounciness: 0 }).start()
       }

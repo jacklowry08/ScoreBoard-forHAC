@@ -20,8 +20,12 @@ import { PullToRefresh } from '../components/PullToRefresh';
 
 const TRANSCRIPT_CACHE_KEY = 'transcript_cache_v2';
 const TRANSCRIPT_CACHE_TIME_KEY = 'transcript_cache_time_v2';
-const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days — transcript rarely changes
-const RETRY_INTERVAL = 60 * 60 * 1000; // retry background refresh after 1 hour on failure
+
+function getCacheAgeDays(cachedTime: string | null): number | null {
+  if (!cachedTime) return null;
+  const ms = Date.now() - parseInt(cachedTime);
+  return Math.floor(ms / (24 * 60 * 60 * 1000));
+}
 
 export default function TranscriptScreen({ navigation }: any) {
   const { theme } = useTheme();
@@ -30,8 +34,9 @@ export default function TranscriptScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [backgroundRefreshing, setBackgroundRefreshing] = useState(false);
   const [networkError, setNetworkError] = useState(false);
+  const [hacUnavailable, setHacUnavailable] = useState(false);
+  const [cacheAgeDays, setCacheAgeDays] = useState<number | null>(null);
 
-  // Track whether we have data to show during async ops
   const hasDataRef = useRef(false);
 
   useEffect(() => {
@@ -47,10 +52,9 @@ export default function TranscriptScreen({ navigation }: any) {
         if (parsed.groups?.length > 0) {
           setData(parsed);
           hasDataRef.current = true;
+          setCacheAgeDays(getCacheAgeDays(cachedTime));
           setLoading(false);
-          const isStale = !cachedTime || Date.now() - parseInt(cachedTime) > CACHE_DURATION;
-          if (!isStale) return;
-          // Stale: refresh silently in the background
+          // Always try to refresh in background — cache never expires
           setBackgroundRefreshing(true);
           await fetchAndUpdate();
           return;
@@ -73,20 +77,21 @@ export default function TranscriptScreen({ navigation }: any) {
         setData(fresh);
         hasDataRef.current = true;
         setNetworkError(false);
+        setHacUnavailable(false);
+        setCacheAgeDays(0);
         await AsyncStorage.setItem(TRANSCRIPT_CACHE_KEY, JSON.stringify(fresh));
         await AsyncStorage.setItem(TRANSCRIPT_CACHE_TIME_KEY, Date.now().toString());
       } else if (!hasDataRef.current) {
-        // No cached data to fall back on — show error
+        // No cache at all and HAC returned nothing — show error
         setNetworkError(true);
       } else {
-        // Refresh failed but stale data is visible — bump timestamp so we retry
-        // after RETRY_INTERVAL instead of showing the banner on every visit.
-        const retryAt = Date.now() - CACHE_DURATION + RETRY_INTERVAL;
-        await AsyncStorage.setItem(TRANSCRIPT_CACHE_TIME_KEY, retryAt.toString()).catch(() => {});
+        // HAC returned no transcript but we have cache — show unavailable banner
+        setHacUnavailable(true);
       }
     } catch (e) {
       console.warn('Transcript fetch error:', e);
       if (!hasDataRef.current) setNetworkError(true);
+      else setHacUnavailable(true);
     } finally {
       setBackgroundRefreshing(false);
       setRefreshing(false);
@@ -96,9 +101,8 @@ export default function TranscriptScreen({ navigation }: any) {
   const handleRefresh = async () => {
     setRefreshing(true);
     setBackgroundRefreshing(false);
-    setNetworkError(false);
-    await AsyncStorage.removeItem(TRANSCRIPT_CACHE_KEY);
-    await AsyncStorage.removeItem(TRANSCRIPT_CACHE_TIME_KEY);
+    setHacUnavailable(false);
+    // Don't clear cache before fetching — only replace it on success
     await fetchAndUpdate();
   };
 
@@ -158,9 +162,23 @@ export default function TranscriptScreen({ navigation }: any) {
       </GradientHeader>
 
       {backgroundRefreshing && (
-        <View style={[styles.refreshBanner, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+        <View style={[styles.infoBanner, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
           <ActivityIndicator size="small" color={theme.primary} style={{ marginRight: 8 }} />
-          <Text style={[styles.refreshBannerText, { color: theme.textSecondary }]}>Updating transcript…</Text>
+          <Text style={[styles.bannerText, { color: theme.textSecondary }]}>Checking for updates…</Text>
+        </View>
+      )}
+      {!backgroundRefreshing && hacUnavailable && (
+        <View style={[styles.infoBanner, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <Text style={[styles.bannerText, { color: theme.textSecondary }]}>
+            Transcript unavailable on HAC — showing cached data
+          </Text>
+        </View>
+      )}
+      {!backgroundRefreshing && !hacUnavailable && cacheAgeDays !== null && cacheAgeDays > 0 && (
+        <View style={[styles.infoBanner, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <Text style={[styles.bannerText, { color: theme.textSecondary }]}>
+            {cacheAgeDays === 1 ? 'Cached 1 day ago' : `Cached ${cacheAgeDays} days ago`}
+          </Text>
         </View>
       )}
 
@@ -275,14 +293,15 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   calcBtnText: { fontSize: 13, fontWeight: '600' },
-  refreshBanner: {
+  infoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
   },
-  refreshBannerText: { fontSize: 13 },
+  bannerText: { fontSize: 13 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 15, fontSize: 16 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
