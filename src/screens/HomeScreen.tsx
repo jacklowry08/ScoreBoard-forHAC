@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  TouchableOpacity,
+  Animated,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import ScalePressable from '../components/ScalePressable';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,7 +17,7 @@ import { useTheme } from '../context/ThemeContext';
 import GradientHeader from '../components/GradientHeader';
 import { GradeCacheService } from '../services/GradeCacheService';
 import { Assignment } from '../services/webScraper';
-import { gradeColor } from '../constants/colors';
+import { gradeColor, FORMATIVE, SUMMATIVE } from '../constants/colors';
 
 const SNAPSHOT_KEY = 'home_activity_snapshot';
 const MAX_ITEMS = 25;
@@ -27,8 +30,10 @@ type ActivityItem = {
   score: string;
   points: string;
   dateDue: string;
+  category: string;
   isNew: boolean;
   isUpdated: boolean;
+  isIncomplete: boolean;
 };
 
 /** Normalize a score string for stable snapshot comparison.
@@ -64,6 +69,8 @@ export default function HomeScreen({ navigation }: any) {
   const [activity, setActivity]   = useState<ActivityItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [period, setPeriod]       = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
@@ -125,9 +132,10 @@ export default function HomeScreen({ navigation }: any) {
 
     for (const { classId, className, a } of allItems) {
       const rawScore = (a.score || '').toLowerCase().trim();
+      const isIncomplete = rawScore.includes('inc');
       // Skip ungraded, EC, blank
       if (!rawScore || rawScore === 'n/a') continue;
-      if (!a.points || a.points === 'N/A') continue;
+      if (!isIncomplete && (!a.points || a.points === 'N/A')) continue;
 
       const key = `${classId}::${a.name}`;
       const normScore = normalizeScore(a.score);
@@ -152,8 +160,10 @@ export default function HomeScreen({ navigation }: any) {
         score: a.score,
         points: a.points,
         dateDue: a.dateDue || '',
+        category: a.category || '',
         isNew,
         isUpdated,
+        isIncomplete,
       });
     }
 
@@ -172,13 +182,26 @@ export default function HomeScreen({ navigation }: any) {
     try { await AsyncStorage.setItem(SNAPSHOT_KEY, JSON.stringify(newSnapshot)); } catch {}
   };
 
+  const handleRefresh = async () => {
+    if (refreshing || loading) return;
+    setRefreshing(true);
+    spinAnim.setValue(0);
+    Animated.loop(
+      Animated.timing(spinAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+    ).start();
+    await loadData();
+    setRefreshing(false);
+    spinAnim.stopAnimation();
+  };
+
   const dateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
   const renderItem = ({ item }: { item: ActivityItem }) => {
     const pct = calcPct(item.score, item.points);
-    const color = pct !== null ? pctColor(pct) : theme.textSecondary;
+    const lc = item.category.toLowerCase();
+    const stripeColor = lc.includes('summative') ? SUMMATIVE : lc.includes('formative') ? FORMATIVE : theme.primary;
     const badge = item.isNew ? 'New' : item.isUpdated ? 'Updated' : null;
 
     return (
@@ -190,34 +213,38 @@ export default function HomeScreen({ navigation }: any) {
           selectedPeriod: period,
         })}>
 
-        <View style={styles.itemLeft}>
-          <Text style={[styles.itemClass, { color: theme.primary }]} numberOfLines={1}>
-            {item.className}
-          </Text>
-          <Text style={[styles.itemName, { color: theme.text }]} numberOfLines={2}>
-            {item.name}
-          </Text>
-          {item.dateDue ? (
-            <Text style={[styles.itemDate, { color: theme.textSecondary }]}>
-              Due {item.dateDue}
+        <View style={[styles.accentStripe, { backgroundColor: stripeColor }]} />
+        <View style={styles.itemContent}>
+          <View style={styles.itemLeft}>
+            <Text style={[styles.itemClass, { color: theme.primary }]} numberOfLines={1}>
+              {item.className}
             </Text>
-          ) : null}
-        </View>
+            <Text style={[styles.itemName, { color: theme.text }]} numberOfLines={2}>
+              {item.name}
+            </Text>
+            {item.dateDue ? (
+              <Text style={[styles.itemDate, { color: theme.textSecondary }]}>
+                Due {item.dateDue}
+              </Text>
+            ) : null}
+          </View>
 
-        <View style={styles.itemRight}>
-          {badge && (
-            <View style={[styles.badge, { backgroundColor: theme.primary + '22' }]}>
-              <Text style={[styles.badgeText, { color: theme.primary }]}>{badge}</Text>
-            </View>
-          )}
-          <Text style={[styles.itemScore, { color: theme.text }]}>
-            {item.score}/{item.points}
-          </Text>
-          {pct !== null && (
-            <Text style={[styles.itemPct, { color }]}>
-              {pct.toFixed(1)}%
-            </Text>
-          )}
+          <View style={styles.itemRight}>
+            {badge && (
+              <View style={[styles.badge, { backgroundColor: theme.primary + '22' }]}>
+                <Text style={[styles.badgeText, { color: theme.primary }]}>{badge}</Text>
+              </View>
+            )}
+            {item.isIncomplete ? (
+              <View style={[styles.gradePill, { backgroundColor: '#F59E0B' }]}>
+                <Text style={styles.gradePillText}>INC</Text>
+              </View>
+            ) : pct !== null ? (
+              <View style={[styles.gradePill, { backgroundColor: pctColor(pct) }]}>
+                <Text style={styles.gradePillText}>{pct.toFixed(1)}%</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
       </ScalePressable>
     );
@@ -226,12 +253,28 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <GradientHeader style={styles.header}>
-        <Text style={[styles.greeting, { color: theme.headerText }]}>
-          {firstName ? `Welcome, ${firstName}!` : 'Welcome!'}
-        </Text>
-        <Text style={[styles.date, { color: theme.headerText, opacity: 0.7 }]}>
-          {dateStr}
-        </Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.greeting, { color: theme.headerText }]}>
+              {firstName ? `Welcome, ${firstName}!` : 'Welcome!'}
+            </Text>
+            <Text style={[styles.date, { color: theme.headerText, opacity: 0.7 }]}>
+              {dateStr}
+            </Text>
+          </View>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={[styles.headerIconBtn, { backgroundColor: 'rgba(255,255,255,0.18)' }]}
+              onPress={() => navigation.navigate('Schedule')}>
+              <Ionicons name="calendar-outline" size={22} color="rgba(255,255,255,0.9)" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.headerIconBtn, { backgroundColor: 'rgba(255,255,255,0.18)' }]}
+              onPress={() => navigation.navigate('Pet')}>
+              <Ionicons name="paw" size={22} color="rgba(255,255,255,0.9)" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </GradientHeader>
 
       {loading ? (
@@ -251,9 +294,16 @@ export default function HomeScreen({ navigation }: any) {
           keyExtractor={item => item.key}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              Recent Activity
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+                Recent Activity
+              </Text>
+              <TouchableOpacity onPress={handleRefresh} disabled={refreshing || loading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Animated.View style={{ transform: [{ rotate: spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+                  <Ionicons name="refresh" size={16} color={theme.textSecondary} />
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
           }
         />
       )}
@@ -264,41 +314,58 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header:    { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greeting:  { fontSize: 26, fontWeight: 'bold', fontFamily: 'Inter_700Bold', marginBottom: 3 },
   date:      { fontSize: 13, fontWeight: '500' },
+  headerButtons: { flexDirection: 'row', gap: 8 },
+  headerIconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
 
   center:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
   emptyText: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
 
   list:        { padding: 12, paddingBottom: 32 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    marginLeft: 2,
+    marginRight: 2,
+  },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 10,
-    marginLeft: 2,
   },
 
   item: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'stretch',
     borderRadius: 14,
-    padding: 12,
     marginBottom: 8,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 6,
     elevation: 3,
   },
+  accentStripe: { width: 4 },
+  itemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    paddingLeft: 10,
+  },
   itemLeft:  { flex: 1, marginRight: 12 },
   itemClass: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 },
   itemName:  { fontSize: 14, fontWeight: '500', marginBottom: 2 },
   itemDate:  { fontSize: 11 },
 
-  itemRight: { alignItems: 'flex-end', minWidth: 60 },
+  itemRight: { alignItems: 'flex-end' },
   badge: {
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -306,6 +373,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   badgeText: { fontSize: 10, fontWeight: '700' },
-  itemScore: { fontSize: 13, fontWeight: '600', marginBottom: 1 },
-  itemPct:   { fontSize: 12, fontWeight: '600' },
+  itemScore: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
+  gradePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  gradePillText: { fontSize: 11, fontWeight: '700', color: '#fff' },
 });

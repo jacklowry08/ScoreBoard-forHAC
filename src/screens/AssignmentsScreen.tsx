@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Defs, Pattern, Rect, Line } from 'react-native-svg';
 import { Assignment } from '../services/webScraper';
 import { GradeCacheService } from '../services/GradeCacheService';
 import { hacFetchPeriod } from '../services/HACDirectClient';
@@ -16,23 +15,6 @@ import { useTheme } from '../context/ThemeContext';
 import GradientHeader from '../components/GradientHeader';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { gradeColor, FORMATIVE, SUMMATIVE } from '../constants/colors';
-
-const StripedBadge = ({ color, size = 12 }: { color: string; size?: number }) => (
-  <Svg height={size} width={size} style={{ borderRadius: size / 2 }}>
-    <Defs>
-      <Pattern
-        id="stripe"
-        patternUnits="userSpaceOnUse"
-        width="4"
-        height="4"
-        patternTransform="rotate(45)">
-        <Line x1="0" y1="0" x2="0" y2="4" stroke={color} strokeWidth="2" />
-      </Pattern>
-    </Defs>
-    <Rect x="0" y="0" width={size} height={size} fill="url(#stripe)" />
-    <Rect x="0" y="0" width={size} height={size} fill={color} opacity="0.3" />
-  </Svg>
-);
 
 
 function computeCategoryAvg(
@@ -162,6 +144,8 @@ export default function AssignmentsScreen({ route, navigation }: any) {
     const percentage = calculatePercentage(item.score, item.points);
     const categoryColor = getCategoryColor(item.category);
     const extraCredit = isExtraCredit(item.points);
+    const pctNum = !extraCredit && percentage !== 'N/A' && percentage !== 'EC'
+      ? parseFloat(percentage) : null;
 
     return (
       <View
@@ -169,12 +153,8 @@ export default function AssignmentsScreen({ route, navigation }: any) {
           styles.assignmentRow,
           { backgroundColor: theme.cardBackground, borderColor: theme.border, borderWidth: theme.cardBorderWidth },
         ]}>
-        <View style={styles.leftSection}>
-          {extraCredit ? (
-            <StripedBadge color={categoryColor} size={12} />
-          ) : (
-            <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]} />
-          )}
+        <View style={[styles.accentStripe, { backgroundColor: extraCredit ? categoryColor + '70' : categoryColor }]} />
+        <View style={styles.assignmentContent}>
           <View style={styles.assignmentInfo}>
             <Text style={[styles.assignmentName, { color: theme.text }]} numberOfLines={2}>
               {item.name}
@@ -185,30 +165,28 @@ export default function AssignmentsScreen({ route, navigation }: any) {
               </Text>
             )}
           </View>
-        </View>
 
-        <View style={styles.rightSection}>
-          {extraCredit ? (
-            <>
-              <Text style={[styles.scoreText, { color: theme.text }]}>{item.score}</Text>
-              <Text style={styles.extraCreditText}>EC</Text>
-            </>
-          ) : (
-            <>
-              <Text style={[styles.scoreText, { color: theme.text }]}>
-                {item.score}/{item.points}
-              </Text>
-              {percentage !== 'N/A' && percentage !== 'EC' && (
-                <Text
-                  style={[
-                    styles.percentageText,
-                    { color: gradeColor(parseFloat(percentage)) },
-                  ]}>
-                  {percentage}
+          <View style={styles.rightSection}>
+            {extraCredit ? (
+              <>
+                <Text style={[styles.scoreText, { color: theme.text }]}>{item.score}</Text>
+                <View style={[styles.gradePill, { backgroundColor: '#FF6B35' }]}>
+                  <Text style={styles.gradePillText}>EC</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.scoreText, { color: theme.text }]}>
+                  {item.score}/{item.points}
                 </Text>
-              )}
-            </>
-          )}
+                {pctNum !== null && (
+                  <View style={[styles.gradePill, { backgroundColor: gradeColor(pctNum) }]}>
+                    <Text style={styles.gradePillText}>{percentage}</Text>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -359,26 +337,37 @@ const styles = StyleSheet.create({
   listContainer: { padding: 12 },
   assignmentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'stretch',
     borderRadius: 12,
-    padding: 12,
     marginBottom: 8,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 6,
     elevation: 3,
   },
-  leftSection: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
-  categoryBadge: { width: 12, height: 12, borderRadius: 6 },
-  assignmentInfo: { flex: 1 },
+  accentStripe: { width: 4 },
+  assignmentContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    paddingLeft: 10,
+  },
+  assignmentInfo: { flex: 1, marginRight: 12 },
   assignmentName: { fontSize: 14, fontWeight: '500', marginBottom: 2 },
   dueDate: { fontSize: 11 },
-  rightSection: { alignItems: 'flex-end', minWidth: 70 },
-  scoreText: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
-  percentageText: { fontSize: 12, fontWeight: '600' },
-  extraCreditText: { fontSize: 11, fontWeight: '600', color: '#FF6B35' },
+  rightSection: { alignItems: 'flex-end' },
+  scoreText: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
+  gradePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  gradePillText: { fontSize: 11, fontWeight: '700', color: '#fff' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   emptyText: { fontSize: 18 },
 });

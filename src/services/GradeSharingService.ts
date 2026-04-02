@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 
 const SHARING_ENABLED_KEY = 'grade_sharing_enabled';
 // Per-period keys so each marking period uploads independently.
-const UPLOAD_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours
+const UPLOAD_COOLDOWN = 12 * 60 * 60 * 1000; // 12 hours
 
 const MINIMUM_STUDENTS = 10; // Back to production value
 

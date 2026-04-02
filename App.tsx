@@ -27,10 +27,11 @@ import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 import AssignmentsScreen from './src/screens/AssignmentsScreen';
 import TranscriptScreen from './src/screens/TranscriptScreen';
-import AttendanceScreen from './src/screens/AttendanceScreen';
 import PlannerScreen from './src/screens/PlannerScreen';
 import GPACalculatorScreen from './src/screens/GPACalculatorScreen';
 import GradeCalculatorScreen from './src/screens/GradeCalculatorScreen';
+import PetScreen from './src/screens/PetScreen';
+import ScheduleScreen from './src/screens/ScheduleScreen';
 import AuthenticatingScreen from './src/screens/AuthenticatingScreen';
 import { useAuth } from './src/context/AuthContext';
 
@@ -70,7 +71,6 @@ function MainTabs() {
         {[
           { name: 'HomeTab',       component: HomeScreen,       icon: 'home',        label: 'Home' },
           { name: 'GradesTab',     component: GradesScreen,     icon: 'stats-chart', label: 'Grades' },
-          { name: 'AttendanceTab', component: AttendanceScreen, icon: 'calendar',    label: 'Attendance' },
           { name: 'PlannerTab',    component: PlannerScreen,    icon: 'journal',     label: 'Planner' },
           { name: 'TranscriptTab', component: TranscriptScreen, icon: 'school',      label: 'Transcript' },
           { name: 'SettingsTab',   component: SettingsScreen,   icon: 'settings',    label: 'Settings' },
@@ -88,7 +88,7 @@ function MainTabs() {
                 ]}>
                   <Ionicons
                     name={focused ? icon as any : `${icon}-outline` as any}
-                    size={27}
+                    size={31}
                     color={color}
                   />
                 </View>
@@ -125,6 +125,8 @@ function Navigation() {
             <Stack.Screen name="Assignments" component={AssignmentsScreen} />
             <Stack.Screen name="GPACalculator" component={GPACalculatorScreen} />
             <Stack.Screen name="GradeCalculator" component={GradeCalculatorScreen} />
+            <Stack.Screen name="Pet" component={PetScreen} />
+            <Stack.Screen name="Schedule" component={ScheduleScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       )}

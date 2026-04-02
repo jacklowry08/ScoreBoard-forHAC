@@ -9,6 +9,7 @@
  *   cookie store and could strip cookies the OS captured but JS can't see.
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Grade, Assignment } from './webScraper';
 
 export interface PeriodData {
@@ -513,10 +514,18 @@ export async function fetchStudentName(): Promise<string | null> {
     if (!m) return null;
 
     const fullName = decodeHtml(m[1].trim());
-    const firstName = fullName.split(/\s+/)[0];
+    const parts = fullName.split(/\s+/);
+    const firstName = parts[0];
+    const lastName  = parts.slice(1).join(' ');
     if (!firstName) return null;
 
-    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+
+    if (lastName) {
+      await AsyncStorage.setItem('student_last_name', cap(lastName)).catch(() => {});
+    }
+
+    return cap(firstName);
   } catch (e) {
     console.warn('fetchStudentName error:', e);
     return null;
@@ -641,7 +650,7 @@ function parseTranscriptHtml(html: string): TranscriptData {
         const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
         let cellM;
         while ((cellM = cellRe.exec(rowM[1])) !== null) {
-          cells.push(stripTags(cellM[1]).replace(/\s+/g, ' ').trim());
+          cells.push(decodeHtml(stripTags(cellM[1])).replace(/\s+/g, ' ').trim());
         }
         if (cells.length >= 2) {
           const courseName = cells[1];
@@ -687,6 +696,75 @@ export async function hacFetchTranscript(): Promise<TranscriptData | null> {
   if (html.includes('LogOnDetails.UserName')) return null;
   const data = parseTranscriptHtml(html);
   return data.groups.length > 0 ? data : null;
+}
+
+// ─── Schedule ─────────────────────────────────────────────────────────────────
+
+export interface ScheduleCourse {
+  period: string;
+  courseName: string;
+  teacher: string;
+  room: string;
+  days: string;
+}
+
+function parseScheduleHtml(html: string): ScheduleCourse[] {
+  const courses: ScheduleCourse[] = [];
+
+  // Find the schedule table specifically
+  const tableM = html.match(/<table[^>]+id="plnMain_dgSchedule"[^>]*>([\s\S]*?)<\/table>/i);
+  if (!tableM) return courses;
+
+  const tableHtml = tableM[1];
+  const rowRe = /<tr[^>]+class="sg-asp-table-data-row"[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowM;
+
+  while ((rowM = rowRe.exec(tableHtml)) !== null) {
+    const row = rowM[1];
+    const cells: string[] = [];
+    const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    let cellM;
+    while ((cellM = cellRe.exec(row)) !== null) {
+      cells.push(decodeHtml(stripTags(cellM[1])).replace(/\s+/g, ' ').trim());
+    }
+    // Columns: 0=CourseCode, 1=Description, 2=Period, 3=Teacher, 4=Room, 5=Days
+    if (cells.length >= 5 && cells[1]) {
+      courses.push({
+        period:     cells[2] || '',
+        courseName: cells[1] || '',
+        teacher:    cells[3] || '',
+        room:       cells[4] || '',
+        days:       cells[5] || '',
+      });
+    }
+  }
+  return courses;
+}
+
+export async function hacFetchSchedule(): Promise<ScheduleCourse[] | null> {
+  try {
+    const resp = await doFetch(`${currentBaseUrl}/HomeAccess/Content/Student/Classes.aspx`);
+    const url: string = (resp as any).url ?? '';
+    console.log('📅 schedule url:', url);
+    if (url.includes('/LogOn') || url.includes('/Account/')) {
+      console.warn('📅 schedule: redirected to login');
+      return null;
+    }
+    const html = await resp.text();
+    console.log('📅 schedule html length:', html.length);
+    console.log('📅 schedule has table:', html.includes('plnMain_dgSchedule'));
+    console.log('📅 schedule html snippet:', html.substring(0, 500));
+    if (html.includes('LogOnDetails.UserName')) {
+      console.warn('📅 schedule: login form detected');
+      return null;
+    }
+    const courses = parseScheduleHtml(html);
+    console.log('📅 schedule parsed courses:', courses.length, courses);
+    return courses.length > 0 ? courses : null;
+  } catch (e) {
+    console.error('📅 hacFetchSchedule error:', e);
+    return null;
+  }
 }
 
 // ─── Attendance ────────────────────────────────────────────────────────────────
